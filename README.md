@@ -6,6 +6,8 @@
 
 Agent 使用 **local backend**：步骤在 CI 宿主机执行，直接用本机已装的 `go` / `node` / `rsync` 等。只适合 **可信私有仓库**。
 
+每次流水线会在临时目录建一个空的 `HOME`，默认的 Go 模块/工具链、`npm` 缓存都会被丢掉。agent 会把它们指到宿主机 `/var/cache/woodpecker`，第二次起只编译改动的部分。流水线里不要 `apk add` / `apt-get install` 编译器。
+
 ## 安装（CI 机）
 
 需要：Docker Compose、能访问 Git、按要编的语言装好工具，以及 `git`、`rsync`、`ssh`、`curl`、`bash`。
@@ -20,6 +22,8 @@ docker compose --env-file .env up -d --build
 ```
 
 浏览器打开 `WOODPECKER_HOST`（默认 `:8000`）。在 Git 平台创建 OAuth 应用，回调一般为 `{WOODPECKER_HOST}/authorize`。登录后添加要发布的仓库，确认 webhook 已指向 Woodpecker。
+
+改完缓存相关配置后，在本目录执行 `docker compose --env-file .env up -d --build` 让 agent 重新注入环境变量。第一次 Go 构建仍可能下载 toolchain / 模块，之后应命中 `/var/cache/woodpecker`。宿主机 `go` 版本已覆盖 `go.mod` 时，可在 `.env` 设 `GOTOOLCHAIN=local`，彻底禁止再下编译器。
 
 `.env` 不要提交。Gitee 无官方 forge 时，用 GitHub / Gitea / Forgejo。
 

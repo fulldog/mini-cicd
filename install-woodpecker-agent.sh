@@ -10,6 +10,7 @@ set -euo pipefail
 
 DEST="${DEST:-/usr/local/bin/woodpecker-agent}"
 TMPDIR_WP="${WOODPECKER_BACKEND_LOCAL_TEMP_DIR:-/var/tmp/woodpecker}"
+CACHE_ROOT="${WOODPECKER_CACHE_DIR:-/var/cache/woodpecker}"
 VERSION="${WOODPECKER_AGENT_VERSION:-v3.18.0}"
 
 arch="$(uname -m)"
@@ -50,8 +51,16 @@ if [[ -z "${bin}" || ! -f "${bin}" ]]; then
 fi
 
 install -m 0755 "${bin}" "${DEST}"
-mkdir -p "${TMPDIR_WP}"
-chmod 1777 "${TMPDIR_WP}" 2>/dev/null || true
+mkdir -p "${TMPDIR_WP}" \
+  "${CACHE_ROOT}/go/mod" \
+  "${CACHE_ROOT}/go/build" \
+  "${CACHE_ROOT}/npm" \
+  "${CACHE_ROOT}/pnpm" \
+  "${CACHE_ROOT}/xdg"
+chmod 1777 "${TMPDIR_WP}" "${CACHE_ROOT}" \
+  "${CACHE_ROOT}/go" "${CACHE_ROOT}/go/mod" "${CACHE_ROOT}/go/build" \
+  "${CACHE_ROOT}/npm" "${CACHE_ROOT}/pnpm" "${CACHE_ROOT}/xdg" 2>/dev/null || true
 echo "已安装 ${DEST}（${VERSION} linux/${goarch}）"
 echo "工作目录 ${TMPDIR_WP}"
+echo "缓存目录 ${CACHE_ROOT}"
 "${DEST}" --help >/dev/null 2>&1 || "${DEST}" --version || true

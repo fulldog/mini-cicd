@@ -11,6 +11,8 @@ steps:
   - name: build
     image: bash
     commands:
+      # 不要在流水线里 apk/apt 装编译器；用 CI 机已装的 go/node。
+      # 模块与 toolchain 缓存在宿主机 /var/cache/woodpecker（由 mini-cicd agent 注入）。
       - echo "换成该仓库的打包命令，例如：go build -o myapp . 或 pnpm build"
       - echo "下面 PUBLISH_SRC 改成实际产物路径"
 
