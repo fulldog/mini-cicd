@@ -1,0 +1,11 @@
+# Woodpecker agent 容器只做 nsenter，流水线在宿主机执行。不在镜像内装编译链。
+FROM debian:bookworm-slim
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates util-linux \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY agent-entrypoint.sh /usr/local/bin/agent-entrypoint.sh
+RUN chmod +x /usr/local/bin/agent-entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/agent-entrypoint.sh"]

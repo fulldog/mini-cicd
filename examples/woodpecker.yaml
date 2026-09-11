@@ -1,0 +1,32 @@
+# 复制到业务仓库根目录，改名为 .woodpecker.yaml，
+# 并把 mini-cicd 的 deploy-remote.sh 拷进该仓库（或改成 CI 机上的绝对路径）。
+#
+# Secrets（必填）：deploy_host、deploy_user、ssh_private_key
+
+when:
+  - event: [push, manual]
+    branch: [main, master]
+
+steps:
+  - name: build
+    image: bash
+    commands:
+      - echo "换成该仓库的打包命令，例如：go build -o myapp . 或 pnpm build"
+      - echo "下面 PUBLISH_SRC 改成实际产物路径"
+
+  - name: publish
+    image: bash
+    environment:
+      DEPLOY_HOST:
+        from_secret: deploy_host
+      DEPLOY_USER:
+        from_secret: deploy_user
+      SSH_PRIVATE_KEY:
+        from_secret: ssh_private_key
+      DEPLOY_PATH: /opt/app
+      PUBLISH_SRC: dist
+      # PUBLISH_DEST: dist
+      # REMOTE_AFTER: sudo -n systemctl restart myapp
+      # DEPLOY_HEALTH_URL: https://example.com/health
+    commands:
+      - bash deploy-remote.sh

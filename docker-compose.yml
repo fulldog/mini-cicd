@@ -1,0 +1,54 @@
+# 轻量打包发布平台：Woodpecker server + 宿主机 agent（local backend）。
+# 与具体业务仓库无关。用法（本目录）：
+#   cp .env.example .env
+#   sudo bash install-woodpecker-agent.sh
+#   docker compose --env-file .env up -d --build
+
+name: woodpecker
+
+services:
+  woodpecker-server:
+    image: woodpeckerci/woodpecker-server:v3
+    restart: unless-stopped
+    ports:
+      - "${WOODPECKER_HTTP_PORT:-8000}:8000"
+      - "${WOODPECKER_GRPC_PORT:-9000}:9000"
+    volumes:
+      - woodpecker-server-data:/var/lib/woodpecker/
+    environment:
+      WOODPECKER_OPEN: ${WOODPECKER_OPEN:-true}
+      WOODPECKER_ADMIN: ${WOODPECKER_ADMIN:-}
+      WOODPECKER_HOST: ${WOODPECKER_HOST:?请在 .env 中设置 WOODPECKER_HOST}
+      WOODPECKER_AGENT_SECRET: ${WOODPECKER_AGENT_SECRET:?请在 .env 中设置 WOODPECKER_AGENT_SECRET}
+      WOODPECKER_SERVER_ADDR: :8000
+      WOODPECKER_GRPC_ADDR: :9000
+      WOODPECKER_GITHUB: ${WOODPECKER_GITHUB:-true}
+      WOODPECKER_GITHUB_CLIENT: ${WOODPECKER_GITHUB_CLIENT:-}
+      WOODPECKER_GITHUB_SECRET: ${WOODPECKER_GITHUB_SECRET:-}
+      WOODPECKER_GITEA: ${WOODPECKER_GITEA:-false}
+      WOODPECKER_GITEA_URL: ${WOODPECKER_GITEA_URL:-}
+      WOODPECKER_GITEA_CLIENT: ${WOODPECKER_GITEA_CLIENT:-}
+      WOODPECKER_GITEA_SECRET: ${WOODPECKER_GITEA_SECRET:-}
+
+  woodpecker-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    restart: unless-stopped
+    depends_on:
+      - woodpecker-server
+    network_mode: host
+    pid: host
+    ipc: host
+    privileged: true
+    environment:
+      WOODPECKER_SERVER: ${WOODPECKER_AGENT_SERVER:-127.0.0.1:9000}
+      WOODPECKER_AGENT_SECRET: ${WOODPECKER_AGENT_SECRET:?请在 .env 中设置 WOODPECKER_AGENT_SECRET}
+      WOODPECKER_BACKEND: local
+      WOODPECKER_BACKEND_LOCAL_TEMP_DIR: ${WOODPECKER_BACKEND_LOCAL_TEMP_DIR:-/var/tmp/woodpecker}
+      WOODPECKER_HOST_AGENT_BIN: ${WOODPECKER_HOST_AGENT_BIN:-/usr/local/bin/woodpecker-agent}
+      GOPROXY: ${GOPROXY:-https://goproxy.cn,direct}
+      HOST_PATH: ${HOST_PATH:-/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin}
+
+volumes:
+  woodpecker-server-data:
