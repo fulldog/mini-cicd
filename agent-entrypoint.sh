@@ -5,6 +5,8 @@ set -euo pipefail
 
 HOST_AGENT="${WOODPECKER_HOST_AGENT_BIN:-/usr/local/bin/woodpecker-agent}"
 CACHE_ROOT="${WOODPECKER_CACHE_DIR:-/var/cache/woodpecker}"
+# agent 把 server 分配的 ID 存在这里；nsenter 后是宿主机路径，目录不存在会每次重新注册
+AGENT_CONFIG_FILE="${WOODPECKER_AGENT_CONFIG_FILE:-/etc/woodpecker/agent.conf}"
 GOMODCACHE="${GOMODCACHE:-${CACHE_ROOT}/go/mod}"
 GOCACHE="${GOCACHE:-${CACHE_ROOT}/go/build}"
 NPM_CONFIG_CACHE="${NPM_CONFIG_CACHE:-${CACHE_ROOT}/npm}"
@@ -35,8 +37,11 @@ exec nsenter --target 1 --mount --uts --ipc --net --pid -- \
     XDG_CACHE_HOME="${XDG_CACHE_HOME}" \
     CI=true \
     PATH="${HOST_PATH:-/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin}" \
+    WOODPECKER_AGENT_CONFIG_FILE="${AGENT_CONFIG_FILE}" \
     HOST_AGENT="${HOST_AGENT}" \
   sh -c '
+    mkdir -p "$(dirname "$WOODPECKER_AGENT_CONFIG_FILE")" 2>/dev/null \
+      || echo "无法创建 $(dirname "$WOODPECKER_AGENT_CONFIG_FILE")，agent 每次重启会重新注册" >&2
     for d in "$GOMODCACHE" "$GOCACHE" "$npm_config_cache" "$PNPM_STORE_DIR" "$XDG_CACHE_HOME"; do
       mkdir -p "$d" 2>/dev/null && chmod 1777 "$d" 2>/dev/null
       if [ -d "$d" ]; then

@@ -11,6 +11,7 @@ set -euo pipefail
 DEST="${DEST:-/usr/local/bin/woodpecker-agent}"
 TMPDIR_WP="${WOODPECKER_BACKEND_LOCAL_TEMP_DIR:-/var/tmp/woodpecker}"
 CACHE_ROOT="${WOODPECKER_CACHE_DIR:-/var/cache/woodpecker}"
+AGENT_CONFIG_FILE="${WOODPECKER_AGENT_CONFIG_FILE:-/etc/woodpecker/agent.conf}"
 VERSION="${WOODPECKER_AGENT_VERSION:-v3.18.0}"
 
 arch="$(uname -m)"
@@ -52,6 +53,7 @@ fi
 
 install -m 0755 "${bin}" "${DEST}"
 mkdir -p "${TMPDIR_WP}" \
+  "$(dirname "${AGENT_CONFIG_FILE}")" \
   "${CACHE_ROOT}/go/mod" \
   "${CACHE_ROOT}/go/build" \
   "${CACHE_ROOT}/npm" \

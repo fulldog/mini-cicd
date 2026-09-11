@@ -48,6 +48,7 @@ services:
       WOODPECKER_BACKEND_LOCAL_TEMP_DIR: ${WOODPECKER_BACKEND_LOCAL_TEMP_DIR:-/var/tmp/woodpecker}
       WOODPECKER_HOST_AGENT_BIN: ${WOODPECKER_HOST_AGENT_BIN:-/usr/local/bin/woodpecker-agent}
       WOODPECKER_CACHE_DIR: ${WOODPECKER_CACHE_DIR:-/var/cache/woodpecker}
+      WOODPECKER_AGENT_CONFIG_FILE: ${WOODPECKER_AGENT_CONFIG_FILE:-/etc/woodpecker/agent.conf}
       GOPROXY: ${GOPROXY:-https://goproxy.cn,direct}
       GOMODCACHE: ${GOMODCACHE:-/var/cache/woodpecker/go/mod}
       GOCACHE: ${GOCACHE:-/var/cache/woodpecker/go/build}
