@@ -36,4 +36,14 @@ exec nsenter --target 1 --mount --uts --ipc --net --pid -- \
     CI=true \
     PATH="${HOST_PATH:-/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin}" \
     HOST_AGENT="${HOST_AGENT}" \
-  bash -c 'mkdir -p "$GOMODCACHE" "$GOCACHE" "$npm_config_cache" "$PNPM_STORE_DIR" "$XDG_CACHE_HOME" && exec "$HOST_AGENT"'
+  sh -c '
+    for d in "$GOMODCACHE" "$GOCACHE" "$npm_config_cache" "$PNPM_STORE_DIR" "$XDG_CACHE_HOME"; do
+      mkdir -p "$d" 2>/dev/null && chmod 1777 "$d" 2>/dev/null
+      if [ -d "$d" ]; then
+        echo "cache ok: $d"
+      else
+        echo "cache 目录创建失败（宿主机不可写？）: $d" >&2
+      fi
+    done
+    exec "$HOST_AGENT"
+  '
